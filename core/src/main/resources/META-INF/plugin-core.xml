@@ -1,0 +1,13 @@
+<idea-plugin>
+    <resource-bundle>messages.Bundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="sentry-ide-panel"
+                    anchor="bottom"
+                    icon="/icons/sentry.svg"
+                    secondary="false"
+                    canCloseContents="false"
+                    factoryClass="io.sentry.SentryToolWindowFactory"/>
+        <notificationGroup id="sentry.io" displayType="BALLOON"/>
+    </extensions>
+</idea-plugin>
