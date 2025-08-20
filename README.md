@@ -19,7 +19,7 @@ Example:
 
 ```bash
 SENTRY_TOKEN=your_sentry_api_token ./gradlew runIde
-``
+```
 
 ### Project Notes
 - Heavily inspired by the following template https://github.com/rock3r/jewel-ijp-template/tree/243-and-251-compat
