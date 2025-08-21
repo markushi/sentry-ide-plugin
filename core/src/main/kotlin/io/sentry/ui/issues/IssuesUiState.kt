@@ -12,5 +12,6 @@ data class IssuesUiState(
     val issues: UiState<List<Issue>> = UiState.Undefined,
     val selectedIssue: Issue? = null,
     val issueEvents: UiState<List<Event>> = UiState.Undefined,
-    val tagOverview: UiState<List<TagOverview>> = UiState.Undefined
+    val tagOverview: UiState<List<TagOverview>> = UiState.Undefined,
+    val queryText: String = ""
 )

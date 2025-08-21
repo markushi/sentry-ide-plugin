@@ -24,6 +24,7 @@ class LiveDebugViewModel(
 
     companion object {
         private const val POLLING_INTERVAL: Long = 10_000
+        private const val TAG = "LiveDebugViewModel"
     }
 
     val connectedDevices = MutableStateFlow(mutableSetOf<String>())
@@ -112,7 +113,7 @@ class LiveDebugViewModel(
     }
 
     fun pollForIssues() {
-        Logger.error("TAG", "pollForIssues")
+        Logger.debug(TAG, "polling for issues")
 
         val installationIds = sentryInstallationIds.value
         val org = selectedOrganization.value

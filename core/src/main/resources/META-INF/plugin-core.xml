@@ -9,5 +9,19 @@
                     canCloseContents="false"
                     factoryClass="io.sentry.SentryToolWindowFactory"/>
         <notificationGroup id="sentry.io" displayType="BALLOON"/>
+
+        <!-- Profiling Services -->
+        <projectService serviceImplementation="io.sentry.profiling.ProfilingDataService"/>
+        <projectService serviceImplementation="io.sentry.profiling.EditorAnnotationService"/>
     </extensions>
+
+    <actions>
+        <!-- Gutter context menu action similar to "Annotate with Git Blame" -->
+        <action id="sentry.profiling.annotate"
+                class="io.sentry.profiling.AnnotateWithSentryProfilingAction"
+                text="Annotate with Sentry Profiling"
+                description="Annotate editor gutter with Sentry profiling performance data">
+            <add-to-group group-id="EditorGutterPopupMenu"/>
+        </action>
+    </actions>
 </idea-plugin>

@@ -2,7 +2,9 @@ package io.sentry.repository
 
 import io.sentry.logging.Logger
 import io.sentry.network.client.SentryApiClient
+import io.sentry.network.client.SentryApiException
 import io.sentry.network.models.*
+import io.sentry.profiling.Profiles
 import io.sentry.settings.Settings
 import kotlinx.coroutines.flow.*
 
@@ -100,7 +102,7 @@ class SentryRepository(
             } else {
                 val tagDetails = apiClient.getIssueTagOverview(
                     orgSlug = orgSlug, issueId = issueId
-                )
+                ).sortedBy { it.key }
                 Logger.debug(TAG, "Retrieved tag details on issue $issueId")
                 Settings.updateCachedTags(issueId, tagDetails)
                 emit(Result.success(tagDetails))
@@ -114,6 +116,23 @@ class SentryRepository(
         if (cachedTags.isNotEmpty()) {
             Logger.debug(TAG, "Emitting cached tags for issue $issueId")
             emit(Result.success(cachedTags))
+        }
+    }.catch { e ->
+        emit(Result.failure(e))
+    }
+
+    suspend fun getProfiles(
+        orgSlug: String, projectId: String
+    ): Flow<Result<Profiles>> = flow {
+        try {
+            Logger.debug(TAG, "Retrieved profiles $orgSlug/$projectId")
+            val profiles = apiClient.getProfiles(
+                orgSlug = orgSlug, projectId = projectId
+            )
+            emit(Result.success(profiles))
+        } catch (e: SentryApiException) {
+            Logger.error(TAG, "Failed to profiles for org $orgSlug", e)
+            emit(Result.failure(e))
         }
     }.catch { e ->
         emit(Result.failure(e))

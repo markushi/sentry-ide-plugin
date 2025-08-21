@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.sentry.Bundle
 import io.sentry.network.models.*
 import io.sentry.ui.Colors
 import io.sentry.ui.UiState
@@ -36,12 +38,24 @@ fun Issues(viewModel: IssuesViewModel, intellijProject: IntellijProject) {
     Column(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxSize()
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         when (uiState.selectedIssue) {
             null -> {
-                ProjectSelector(uiState) { project ->
-                    viewModel.onProjectSelected(project)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ProjectSelector(uiState.projects, uiState.selectedProject) { project ->
+                        viewModel.onProjectSelected(project)
+                    }
+//                    QueryBuilder(
+//                        queryText = uiState.queryText,
+//                        onQueryChanged = { queryText ->
+//                            viewModel.onQueryChanged(queryText)
+//                        }
+//                    )
                 }
                 IssuesListView(uiState.issues) { issue ->
                     viewModel.onIssueSelected(issue)
@@ -60,8 +74,12 @@ fun Issues(viewModel: IssuesViewModel, intellijProject: IntellijProject) {
 }
 
 @Composable
-private fun ProjectSelector(uiState: IssuesUiState, onProjectSelected: (project: Project) -> Unit) {
-    when (val projectsState = uiState.projects) {
+fun ProjectSelector(
+    uiState: UiState<List<Project>>,
+    selectedProject: Project?,
+    onProjectSelected: (project: Project) -> Unit
+) {
+    when (uiState) {
         is UiState.Undefined -> {
 
         }
@@ -71,13 +89,13 @@ private fun ProjectSelector(uiState: IssuesUiState, onProjectSelected: (project:
         }
 
         is UiState.Error -> {
-            Text("Error loading projects: ${projectsState.exception.message}")
+            Text("Error loading projects: ${uiState.exception.message}")
         }
 
         is UiState.Success -> {
             Dropdown(modifier = Modifier.defaultMinSize(minWidth = 120.dp), menuContent = {
-                projectsState.data.forEach { project ->
-                    selectableItem(uiState.selectedProject == project, onClick = {
+                uiState.data.forEach { project ->
+                    selectableItem(selectedProject == project, onClick = {
                         onProjectSelected(project)
                     }, content = {
                         Text(text = project.asSlug())
@@ -85,7 +103,7 @@ private fun ProjectSelector(uiState: IssuesUiState, onProjectSelected: (project:
                 }
             }, content = {
                 Text(
-                    text = uiState.selectedProject?.asSlug() ?: "Choose a project...", maxLines = 2
+                    text = selectedProject?.asSlug() ?: "Choose a project...", maxLines = 2
                 )
             })
         }
@@ -118,7 +136,16 @@ private fun LoadingFailed(issuesState: UiState.Error) {
 fun IssuesListView(issues: UiState<List<Issue>>, onIssueSelected: (issue: Issue) -> Unit) {
     when (issues) {
         is UiState.Undefined -> {
-
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                @Suppress("UnstableApiUsage")
+                Icon(Bundle.EMPTY_STATE, "")
+                Text("Connect a device or an emulator, and we'll automatically surface any issues as they occur.")
+                Text("The power of sentry.io - within your IDE.")
+            }
         }
 
         is UiState.Loading -> {
@@ -256,7 +283,7 @@ fun IssueDetails(
     Column(
         Modifier
             .verticalScroll(rememberScrollState())
-            .fillMaxWidth(0.7f)
+            .fillMaxWidth(0.6f)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -508,6 +535,7 @@ fun IssueTags(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TagOverview(tagOverviews: List<TagOverview>) {
     val header = listOf<@Composable (() -> Unit)>({
@@ -515,7 +543,6 @@ private fun TagOverview(tagOverviews: List<TagOverview>) {
             modifier = Modifier.width(120.dp),
             text = "Tags",
             maxLines = 1,
-            style = JewelTheme.defaultTextStyle.copy(fontSize = JewelTheme.defaultTextStyle.fontSize * 1.1),
             overflow = TextOverflow.Ellipsis
         )
     }, { Text(text = "") }, { Text(text = "") }, { Text(text = "") })
@@ -529,38 +556,52 @@ private fun TagOverview(tagOverviews: List<TagOverview>) {
                 overflow = TextOverflow.Ellipsis
             )
         }, {
-            Canvas(
-                modifier = Modifier.padding(4.dp).size(90.dp, 24.dp)
-            ) {
-                val outline = 6.dp.toPx()
-                val cornerRadius = 4.dp.toPx()
-                val spaceBetween = 2.dp.toPx()
+            Tooltip(tooltip = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    for (index in 0 until tag.topValues.size) {
+                        val item = tag.topValues[index]
+                        val color = Colors.getColor(index)
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .background(color = color, shape = CircleShape)
+                            )
+                            val percentage = (item.count.toDouble() / tag.totalValues.toDouble()).toFloat()
+                            val percentageString = String.format("%.2f", percentage * 100.0) + "%"
+                            Text(modifier = Modifier.defaultMinSize(minWidth = 60.dp), text = percentageString)
+                            Text(text = item.name)
+                        }
+                    }
+                }
+            }) {
+                Canvas(
+                    modifier = Modifier.padding(2.dp).size(90.dp, 20.dp)
+                ) {
+                    val outline = 6.dp.toPx()
+                    val cornerRadius = 4.dp.toPx()
+                    val spaceBetween = 2.dp.toPx()
 
-                // background
-                //drawRoundRect(
-                //    color = bgColor,
-                //    topLeft = Offset(0f, 0f),
-                //    size = Size(size.width, size.height),
-                //    cornerRadius = CornerRadius(cornerRadius, cornerRadius),
-                //)
+                    val availableWidth =
+                        size.width - outline - (if (tag.topValues.size > 1) ((tag.topValues.size - 1) * spaceBetween) else 0f)
+                    var currentX = outline / 2f
 
-                val availableWidth =
-                    size.width - outline - (if (tag.topValues.size > 1) ((tag.topValues.size - 1) * spaceBetween) else 0f)
-                var currentX = outline / 2f
-
-                for (index in 0 until tag.topValues.size) {
-                    val item = tag.topValues[index]
-                    val mutedColor = Colors.getColorMuted(index)
-                    val color = Colors.getColor(index)
-                    val percentage = (item.count.toDouble() / tag.totalValues.toDouble()).toFloat()
-                    val endX = currentX + percentage * availableWidth
-                    drawRoundRect(
-                        brush = Brush.linearGradient(listOf(mutedColor, color)),
-                        topLeft = Offset(currentX, outline / 2f),
-                        size = Size(endX - currentX, size.height - outline),
-                        cornerRadius = CornerRadius(cornerRadius, cornerRadius),
-                    )
-                    currentX = endX + spaceBetween
+                    for (index in 0 until tag.topValues.size) {
+                        val item = tag.topValues[index]
+                        val mutedColor = Colors.getColorMuted(index)
+                        val color = Colors.getColor(index)
+                        val percentage = (item.count.toDouble() / tag.totalValues.toDouble()).toFloat()
+                        val endX = currentX + percentage * availableWidth
+                        drawRoundRect(
+                            brush = Brush.linearGradient(listOf(mutedColor, color)),
+                            topLeft = Offset(currentX, outline / 2f),
+                            size = Size(endX - currentX, size.height - outline),
+                            cornerRadius = CornerRadius(cornerRadius, cornerRadius),
+                        )
+                        currentX = endX + spaceBetween
+                    }
                 }
             }
         }, {
@@ -584,6 +625,6 @@ private fun TagOverview(tagOverviews: List<TagOverview>) {
         })
     }
     BasicTableLayout(
-        rows.size, 4, Color.Transparent, cellBorderWidth = 4.dp, rows = rows
+        rows.size, 4, Color.Transparent, cellBorderWidth = 2.dp, rows = rows
     )
 }

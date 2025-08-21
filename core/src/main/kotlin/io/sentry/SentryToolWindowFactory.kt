@@ -27,6 +27,8 @@ internal class SentryToolWindowFactory : ToolWindowFactory, DumbAware {
         val repo = SentryRepository(cacheOnly = false)
         val issuesViewModel = IssuesViewModel(project, repo)
         val notificationManager = NotificationManager(project)
+//        val profilingViewModel = ProfilingViewModel(project, repo)
+
         val liveDebugViewModel = LiveDebugViewModel(project, repo, notificationManager) {
             // todo find a better way
             toolWindow.contentManager.setSelectedContent(toolWindow.contentManager.contents[2])
@@ -45,6 +47,9 @@ internal class SentryToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.addComposeTab("🔥Live Debug 🔥") {
             LiveDebug(liveDebugViewModel)
         }
+//        toolWindow.addComposeTab("Profiling") @Composable {
+//            Profiling(profilingViewModel)
+//        }
 
         toolWindow.disposable.whenDisposed {
             issuesViewModel.dispose()

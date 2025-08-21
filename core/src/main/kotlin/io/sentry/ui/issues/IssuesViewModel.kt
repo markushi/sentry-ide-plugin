@@ -29,7 +29,11 @@ class IssuesViewModel(
             repository.getProjects().collect { result ->
                 val updatedState = _uiState.value.copy(
                     projects = result.fold(
-                        onSuccess = { UiState.Success(it) },
+                        onSuccess = {
+                            UiState.Success(
+                                it
+                            )
+                        },
                         onFailure = { UiState.Error(it) }
                     )
                 )
@@ -137,6 +141,18 @@ class IssuesViewModel(
     fun onStacktraceLineClicked(line: StacktraceLine) {
         line.fileName?.let { file ->
             openFileInEditor(project, file, line.lineNumber)
+        }
+    }
+
+    fun onQueryChanged(queryText: String) {
+        _uiState.value = _uiState.value.copy(
+            queryText = queryText
+        )
+
+        // Reload issues with the new query if a project is selected
+        _uiState.value.selectedProject?.let { project ->
+            _uiState.value = _uiState.value.copy(issues = UiState.Loading)
+            loadIssues(project)
         }
     }
 

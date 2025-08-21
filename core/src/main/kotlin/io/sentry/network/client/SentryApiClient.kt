@@ -3,9 +3,8 @@ package io.sentry.network.client
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.sentry.network.models.*
-import java.io.File
+import io.sentry.profiling.Profiles
 
 class SentryApiClient(token: String, private val baseUrl: String = "https://sentry.io/api/0") {
 
@@ -132,7 +131,6 @@ class SentryApiClient(token: String, private val baseUrl: String = "https://sent
             }
             response.body<List<Event>>()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw toSentryApiException("Failed to fetch events for issue $issueId in organization $orgSlug", e)
         }
     }
@@ -143,11 +141,23 @@ class SentryApiClient(token: String, private val baseUrl: String = "https://sent
     ): List<TagOverview> {
         return try {
             val response = httpClient.get("$baseUrl/organizations/$orgSlug/issues/$issueId/tags/")
-            File("organizations-$orgSlug-issues-$issueId-tags.json").writeText(response.bodyAsText())
             response.body<List<TagOverview>>()
         } catch (e: Exception) {
-            e.printStackTrace()
             throw toSentryApiException("Failed to fetch tag details on issue $issueId in organization $orgSlug", e)
+        }
+    }
+
+    suspend fun getProfiles(
+        orgSlug: String,
+        projectId: String,
+    ): Profiles {
+        return try {
+            val response = httpClient.get(
+                "$baseUrl/organizations/$orgSlug/profiling/flamegraph/?dataSource=profiles&project=$projectId&statsPeriod=7d"
+            )
+            response.body<Profiles>()
+        } catch (e: Exception) {
+            throw toSentryApiException("Failed to fetch profiles in organization $orgSlug/$projectId", e)
         }
     }
 
