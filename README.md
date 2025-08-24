@@ -1,7 +1,25 @@
 ## Sentry IDE Plugin (Hackweek Project)
 
 This is a Sentry Hackweek project that experiments with a lightweight Sentry integration for JetBrains IDEs. It focuses
-on browsing issues, releases, and live debug information directly inside the IDE.
+on browsing issues, checking release health (TODO), and live debug information directly inside the IDE.
+
+### Feature Set
+
+#### Issue Explorer
+
+<img src="./screenshots/issues_overview.png" alt="Issue Overview" width="600">
+<img src="./screenshots/issues_detail.png" alt="Issue Detail" width="600">
+
+#### Issue Explorer
+
+TODO: Implement
+
+#### Live Debug
+
+The Sentry IDE plugin automatically connects to your local emulators and devices and monitor them.
+This way you'll get notified about any new issues before you even commit your code changes.
+
+<img src="./screenshots/live_debug.png" alt="Issue Overview" width="600">
 
 ### Requirements
 
