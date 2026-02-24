@@ -32,6 +32,7 @@ dependencies {
         bundledModule("intellij.platform.jewel.ideLafBridge")
         bundledModule("intellij.libraries.compose.foundation.desktop")
         bundledModule("intellij.libraries.skiko")
+        bundledPlugin("Git4Idea")
 
         implementation("androidx.datastore:datastore:1.1.7")
         implementation("androidx.datastore:datastore-preferences:1.1.7")

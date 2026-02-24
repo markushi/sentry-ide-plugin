@@ -12,6 +12,8 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import io.sentry.repository.SentryRepository
 import io.sentry.ui.issues.Issues
 import io.sentry.ui.issues.IssuesViewModel
+import io.sentry.seer.ui.SeerPanel
+import io.sentry.seer.ui.SeerViewModel
 import io.sentry.ui.livedebug.LiveDebug
 import io.sentry.ui.livedebug.LiveDebugViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,6 +30,8 @@ internal class SentryToolWindowFactory : ToolWindowFactory, DumbAware {
         val issuesViewModel = IssuesViewModel(project, repo)
         val notificationManager = NotificationManager(project)
 //        val profilingViewModel = ProfilingViewModel(project, repo)
+
+        val seerViewModel = SeerViewModel(project)
 
         val liveDebugViewModel = LiveDebugViewModel(project, repo, notificationManager) {
             // todo find a better way
@@ -47,6 +51,9 @@ internal class SentryToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.addComposeTab("🔥Live Debug 🔥") {
             LiveDebug(liveDebugViewModel)
         }
+        toolWindow.addComposeTab("Seer") {
+            SeerPanel(seerViewModel)
+        }
 //        toolWindow.addComposeTab("Profiling") @Composable {
 //            Profiling(profilingViewModel)
 //        }
@@ -54,6 +61,7 @@ internal class SentryToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.disposable.whenDisposed {
             issuesViewModel.dispose()
             liveDebugViewModel.dispose()
+            seerViewModel.dispose()
         }
     }
 

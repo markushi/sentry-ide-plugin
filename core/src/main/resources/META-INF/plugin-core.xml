@@ -13,6 +13,11 @@
         <!-- Profiling Services -->
         <projectService serviceImplementation="io.sentry.profiling.ProfilingDataService"/>
         <projectService serviceImplementation="io.sentry.profiling.EditorAnnotationService"/>
+
+        <!-- Seer Services -->
+        <projectService serviceImplementation="io.sentry.seer.SeerAnalysisService"/>
+        <projectService serviceImplementation="io.sentry.seer.editor.SeerAnnotationService"/>
+        <projectService serviceImplementation="io.sentry.seer.SeerIdleTrigger"/>
     </extensions>
 
     <actions>
@@ -23,5 +28,14 @@
                 description="Annotate editor gutter with Sentry profiling performance data">
             <add-to-group group-id="EditorGutterPopupMenu"/>
         </action>
+        <!-- Seer Action -->
+        <action id="sentry.seer.runAnalysis"
+                class="io.sentry.seer.RunSeerAnalysisAction"
+                text="Run Seer Bug Prediction"
+                description="Analyze local changes for potential bugs using Seer">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
     </actions>
+
+    <depends>Git4Idea</depends>
 </idea-plugin>
